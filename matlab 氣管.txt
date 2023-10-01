@@ -1,0 +1,39 @@
+CT=DicomRead(".\CT\");
+
+tx=zeros(size(CT));
+tx(CT<-450)=1;
+a=[0 0 0;0 1 0;0 0 0];
+a(:,:,2)=[0 1 0;1 1 1;0 1 0];
+a(:,:,3)=[0 0 0;0 1 0;0 0 0];
+b=[0 1 0;1 1 1;0 1 0];
+b(:,:,2)=[1 1 1;1 1 1;1 1 1];
+b(:,:,3)=[0 1 0;1 1 1;0 1 0];
+tx=imerode(tx,a);
+txTest=bwconncomp(tx,18);
+tx=imdilate(tx,a);
+numPixels = cellfun(@numel,txTest.PixelIdxList);
+[biggest,idx] = max(numPixels);
+tx(CT<-950)=2;
+tx(txTest.PixelIdxList{idx}) = 0;
+tx=imdilate(tx,b);
+tx=imdilate(tx,b);
+tx=imerode(tx,b);
+tx=imerode(tx,b);
+tx=imerode(tx,a);
+tx=imdilate(tx,a);
+
+for i=344:-1:1
+t=(CT(:,:,i)+1600)/1700;
+t(t>1)=1;
+
+t1=t;
+t2=t;
+t3=t;
+im1=cat(3,t,t,t);
+t1(tx(:,:,i)==2)=0;
+t2(tx(:,:,i)==2)=1;
+t3(tx(:,:,i)==2)=0;
+s=zeros(512,20,3);
+im2=cat(3,t1,t2,t3);
+figure(1),imshow([im1 s im2]);
+end
